@@ -1,0 +1,85 @@
+/* Footer styles */
+.footer {
+  @apply bg-gray-900 text-gray-300 mt-auto;
+}
+
+.footer-content {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 py-12;
+}
+
+/* Footer section */
+.footer-section {
+  @apply space-y-4;
+}
+
+.footer-logo {
+  @apply flex items-center gap-2 text-green-400 mb-4;
+}
+
+.logo-icon {
+  @apply flex-shrink-0;
+}
+
+.logo-text {
+  @apply font-bold text-xl;
+}
+
+.footer-description {
+  @apply text-gray-400 leading-relaxed;
+}
+
+.footer-title {
+  @apply text-white font-semibold text-lg mb-4;
+}
+
+/* Footer navigation */
+.footer-nav {
+  @apply space-y-2;
+}
+
+.footer-link {
+  @apply text-gray-400 hover:text-green-400 transition-colors text-decoration-none block;
+}
+
+/* Footer bottom */
+.footer-bottom {
+  @apply border-t border-gray-800 py-6;
+}
+
+.footer-bottom-content {
+  @apply flex flex-col md:flex-row justify-between items-center gap-4;
+}
+
+.copyright {
+  @apply text-gray-400 text-sm;
+}
+
+/* Social links */
+.social-links {
+  @apply flex items-center gap-4;
+}
+
+.social-link {
+  @apply text-gray-400 hover:text-green-400 transition-colors p-2 rounded-full hover:bg-gray-800;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .footer-content {
+    @apply grid-cols-1 gap-6;
+  }
+  
+  .footer-section:first-child {
+    @apply col-span-1;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .footer-content {
+    @apply grid-cols-2 gap-8;
+  }
+  
+  .footer-section:first-child {
+    @apply col-span-2;
+  }
+}

@@ -1,0 +1,292 @@
+# General settings
+general: {
+	# Events to notify
+	events = true
+	
+	# Session timeout (seconds)
+	session_timeout = 60
+	
+	# Debug level (0=none, 1=error, 2=warning, 3=info, 4=debug, 5=verbose)
+	debug_level = 3
+	
+	# Debug timestamps
+	debug_timestamps = true
+	
+	# Debug colors
+	debug_colors = true
+	
+	# API secret (for authentication)
+	api_secret = "janusrocks"
+	
+	# Admin API secret (for admin authentication)
+	admin_secret = "janusrocksadmin"
+	
+	# Token authentication
+	token_auth = false
+	
+	# Enable JSON indented output
+	json_indented_output = true
+	
+	# Base path for local files
+	base_path = "/opt/janus/share/janus/"
+	
+	# Path to certificates
+	certs_path = "/opt/janus/share/janus/certs/"
+}
+
+# NAT traversal settings
+nat: {
+	# STUN server to use
+	stun_server = "stun:stun.l.google.com:19302"
+	
+	# STUN server port
+	stun_port = 3478
+	
+	# TURN server to use (optional)
+	# turn_server = "turn:your-turn-server.com:3478"
+	# turn_user = "username"
+	# turn_pwd = "password"
+	
+	# ICE Lite mode
+	ice_lite = false
+	
+	# ICE TCP support
+	ice_tcp = false
+	
+	# IPv6 support
+	ipv6 = false
+	
+	# Keepalive interval (seconds)
+	keepalive_interval = 25
+	
+	# Local IP address to use (optional)
+	# local_ip = "192.168.1.100"
+	
+	# Use of NICE library
+	nice_debug = false
+}
+
+# Media settings
+media: {
+	# Max NACK queue size
+	max_nack_queue = 300
+	
+	# RTP port range
+	rtp_port_range = "10000-20000"
+	
+	# Enable video
+	video = true
+	
+	# Enable audio
+	audio = true
+	
+	# Enable data channels
+	data_channels = true
+	
+	# Do audio bitrate estimation (requires libopus)
+	do_audio_bw_est = true
+	
+	# Max packet size
+	max_packet_size = 1400
+	
+	# Opus FEC (Forward Error Correction)
+	opus_fec = true
+	
+	# Opus DTX (Discontinuous Transmission)
+	opus_dtx = false
+	
+	# Opus complexity
+	opus_complexity = 4
+	
+	# VP8 MTU
+	vp8_mtusize = 1200
+	
+	# H.264 profile
+	h264_profile = "42e01e"
+	
+	# H.264 level
+	h264_level = "42e01e"
+	
+	# G.711 PLC
+	g711_plc = true
+	
+	# SRTP mandatory encryption
+	srtp_mandatory = false
+	
+	# SRTP fallback to plain RTP
+	srtp_fallback = true
+	
+	# Media logging
+	media_log = false
+}
+
+# Plugins to enable
+plugins: {
+	# Enable all plugins
+	disabled = null
+	
+	# Plugin paths
+	plugins_folder = "/opt/janus/lib/janus/plugins/"
+	
+	# Specific plugins to disable (optional)
+	# disabled = "janus.plugin.echotest,janus.plugin.recordplay"
+	
+	# Events handler plugins
+	events_handlers = null
+}
+
+# Transport settings
+transports: {
+	# WebSocket transport
+	ws = true
+	
+	# HTTP transport
+	http = true
+	
+	# RabbitMQ transport (optional)
+	# rabbitmq = false
+	
+	# MQTT transport (optional)
+	# mqtt = false
+	
+	# Unix Sockets transport (optional)
+	# unix_sockets = false
+}
+
+# WebSocket transport settings
+websockets: {
+	# WebSocket server port
+	ws_port = 8189
+	
+	# WebSocket secure server port
+	wss_port = 8989
+	
+	# WebSocket interface to bind to
+	ws_interface = "0.0.0.0"
+	
+	# WebSocket secure interface to bind to
+	wss_interface = "0.0.0.0"
+	
+	# WebSocket path
+	ws_path = "/"
+	
+	# WebSocket secure path
+	wss_path = "/"
+	
+	# Ping/pong interval (seconds)
+	pingpong_interval = 30
+	
+	# Ping/pong timeout (seconds)
+	pingpong_timeout = 10
+	
+	# Enable ACME (Let's Encrypt) support
+	acme = false
+	
+	# ACME domain
+	acme_domain = "yourdomain.com"
+	
+	# ACME contact email
+	acme_contact = "admin@yourdomain.com"
+	
+	# WebSocket ACL (optional)
+	# ws_acl = "192.168.0.0/16,10.0.0.0/8"
+}
+
+# HTTP transport settings
+http: {
+	# HTTP server port
+	http_port = 8088
+	
+	# HTTPS server port
+	https_port = 7889
+	
+	# HTTP interface to bind to
+	http_interface = "0.0.0.0"
+	
+	# HTTPS interface to bind to
+	https_interface = "0.0.0.0"
+	
+	# Base path
+	base_path = "/janus"
+	
+	# Admin/monitor base path
+	admin_base_path = "/admin"
+	
+	# Enable CORS
+	cors = true
+	
+	# CORS origins
+	cors_origins = "*"
+	
+	# Enable ACME (Let's Encrypt) support
+	acme = false
+	
+	# ACME domain
+	acme_domain = "yourdomain.com"
+	
+	# ACME contact email
+	acme_contact = "admin@yourdomain.com"
+	
+	# HTTP ACL (optional)
+	# http_acl = "192.168.0.0/16,10.0.0.0/8"
+}
+
+# Logging settings
+loggers: {
+	# Console logger
+	console: {
+		enabled = true
+		colors = true
+		pretty = true
+		filename = null
+		level = 3
+	}
+	
+	# File logger
+	file: {
+		enabled = true
+		colors = false
+		pretty = false
+		filename = "/var/log/janus/janus.log"
+		level = 3
+	}
+}
+
+# Event handlers
+events: {
+	# Enable event handlers
+	enabled = false
+	
+	# Event handlers to use
+	# broadcast = true
+	# rabbitmq = false
+	# mqtt = false
+	# nanomsg = false
+}
+
+# Security settings
+security: {
+	# Enable secret-based authentication
+	secret = "janusrocks"
+	
+	# Enable admin secret-based authentication
+	admin_secret = "janusrocksadmin"
+	
+	# Enable token-based authentication
+	token_auth = false
+	
+	# Token authentication secret
+	token_auth_secret = "janusrocks"
+	
+	# Enable access control
+	acl = null
+	
+	# Enable rate limiting
+	rate_limit = false
+	
+	# Rate limit burst
+	rate_limit_burst = 10
+	
+	# Rate limit rate
+	rate_limit_rate = 1
+}

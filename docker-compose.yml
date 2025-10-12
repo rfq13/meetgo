@@ -1,0 +1,270 @@
+services:
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: webrtc-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - webrtc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API Server
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: webrtc-api
+    environment:
+      # Server Configuration
+      SERVER_HOST: ${API_HOST:-0.0.0.0}
+      SERVER_PORT: ${API_PORT:-8080}
+      GIN_MODE: ${GIN_MODE:-release}
+      
+      # Database Configuration
+      DATABASE_HOST: host.docker.internal
+      DATABASE_PORT: ${DB_PORT:-5432}
+      DATABASE_USER: ${DB_USER:-postgres}
+      DATABASE_PASSWORD: ${DB_PASSWORD:-12345}
+      DATABASE_NAME: ${DB_NAME:-webrtc_meeting}
+      DATABASE_SSL_MODE: ${DB_SSLMODE:-disable}
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      REDIS_DB: ${REDIS_DB:-0}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-168h}
+      
+      # Logger Configuration
+      LOGGER_LEVEL: ${LOGGER_LEVEL:-info}
+      LOGGER_FORMAT: ${LOGGER_FORMAT:-json}
+      
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      CORS_ALLOWED_METHODS: ${CORS_ALLOWED_METHODS:-GET,POST,PUT,DELETE,OPTIONS}
+      CORS_ALLOWED_HEADERS: ${CORS_ALLOWED_HEADERS:-Origin,Content-Type,Accept,Authorization,X-User-ID}
+      
+      # Rate Limiting
+      RATE_LIMIT_REQUESTS_PER_MINUTE: ${RATE_LIMIT_REQUESTS_PER_MINUTE:-100}
+      RATE_LIMIT_BURST: ${RATE_LIMIT_BURST:-20}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - webrtc-network
+    restart: unless-stopped
+    volumes:
+      - ./backend/logs:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # WebSocket Server
+  websocket:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.websocket
+    container_name: webrtc-websocket
+    environment:
+      # Server Configuration
+      SERVER_HOST: ${WEBSOCKET_HOST:-0.0.0.0}
+      SERVER_PORT: ${WEBSOCKET_PORT:-8081}
+      GIN_MODE: ${GIN_MODE:-release}
+      
+      # Database Configuration
+      DATABASE_HOST: host.docker.internal
+      DATABASE_PORT: ${DB_PORT:-5432}
+      DATABASE_USER: ${DB_USER:-postgres}
+      DATABASE_PASSWORD: ${DB_PASSWORD:-12345}
+      DATABASE_NAME: ${DB_NAME:-webrtc_meeting}
+      DATABASE_SSL_MODE: ${DB_SSLMODE:-disable}
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      REDIS_DB: ${REDIS_DB:-0}
+      
+      # Janus Configuration
+      JANUS_BASE_URL: http://janus:8088/janus
+      JANUS_ADMIN_URL: http://janus:7889/admin
+      JANUS_API_SECRET: ${JANUS_API_SECRET:-janusrocks}
+      JANUS_ADMIN_SECRET: ${JANUS_ADMIN_SECRET:-janusrocksadmin}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      
+      # Logger Configuration
+      LOGGER_LEVEL: ${LOGGER_LEVEL:-info}
+      LOGGER_FORMAT: ${LOGGER_FORMAT:-json}
+      
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      CORS_ALLOWED_METHODS: ${CORS_ALLOWED_METHODS:-GET,POST,PUT,DELETE,OPTIONS}
+      CORS_ALLOWED_HEADERS: ${CORS_ALLOWED_HEADERS:-Origin,Content-Type,Accept,Authorization,X-User-ID}
+    ports:
+      - "${WEBSOCKET_PORT:-8081}:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+      janus:
+        condition: service_healthy
+    networks:
+      - webrtc-network
+    restart: unless-stopped
+    volumes:
+      - ./backend/logs:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Janus WebRTC Server
+  janus:
+    build:
+      context: ./janus-server
+      dockerfile: Dockerfile
+    container_name: webrtc-janus
+    environment:
+      # Janus Configuration
+      JANUS_API_SECRET: ${JANUS_API_SECRET:-janusrocks}
+      JANUS_ADMIN_SECRET: ${JANUS_ADMIN_SECRET:-janusrocksadmin}
+      
+      # STUN/TURN Configuration
+      STUN_SERVER: ${STUN_SERVER:-stun:stun.l.google.com:19302}
+      TURN_SERVER: ${TURN_SERVER:-}
+      TURN_USER: ${TURN_USER:-}
+      TURN_PASSWORD: ${TURN_PASSWORD:-}
+      
+      # Network Configuration
+      JANUS_INTERFACE: ${JANUS_INTERFACE:-0.0.0.0}
+      JANUS_HTTP_PORT: 8088
+      JANUS_HTTPS_PORT: 7889
+      JANUS_WS_PORT: 8189
+      JANUS_WSS_PORT: 8989
+      
+      # RTP Port Range
+      RTP_PORT_RANGE: ${RTP_PORT_RANGE:-10000-20000}
+      
+      # Logging Configuration
+      JANUS_LOG_LEVEL: ${JANUS_LOG_LEVEL:-3}
+      JANUS_LOG_COLORS: ${JANUS_LOG_COLORS:-true}
+    ports:
+      - "${JANUS_HTTP_PORT:-8088}:8088"
+      - "${JANUS_HTTPS_PORT:-7889}:7889"
+      - "${JANUS_WS_PORT:-8189}:8189"
+      - "${JANUS_WSS_PORT:-8989}:8989"
+      - "${RTP_PORT_RANGE:-10000-20000}:${RTP_PORT_RANGE:-10000-20000}/udp"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - webrtc-network
+    restart: unless-stopped
+    volumes:
+      - ./janus-server/logs:/var/log/janus
+      - ./janus-server/recordings:/opt/janus/share/janus/recordings
+      - ./janus-server/config:/opt/janus/etc/janus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/janus/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend (Optional - for development)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: webrtc-frontend
+    environment:
+      # API Configuration
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080/api}
+      VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:8081}
+      VITE_JANUS_URL: ${VITE_JANUS_URL:-http://localhost:8088/janus}
+      
+      # Application Configuration
+      VITE_APP_NAME: ${VITE_APP_NAME:-WebRTC Meeting}
+      VITE_APP_VERSION: ${VITE_APP_VERSION:-1.0.0}
+      
+      # STUN/TURN Configuration
+      VITE_STUN_SERVERS: ${VITE_STUN_SERVERS:-stun:stun.l.google.com:19302}
+      VITE_TURN_SERVERS: ${VITE_TURN_SERVERS:-}
+      VITE_TURN_USERNAME: ${VITE_TURN_USERNAME:-}
+      VITE_TURN_CREDENTIAL: ${VITE_TURN_CREDENTIAL:-}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+      websocket:
+        condition: service_healthy
+    networks:
+      - webrtc-network
+    restart: unless-stopped
+    profiles:
+      - frontend
+
+  # Nginx Reverse Proxy (Optional - for production)
+  nginx:
+    image: nginx:alpine
+    container_name: webrtc-nginx
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      websocket:
+        condition: service_healthy
+      janus:
+        condition: service_healthy
+    networks:
+      - webrtc-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+# Networks
+networks:
+  webrtc-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  redis_data:
+    driver: local

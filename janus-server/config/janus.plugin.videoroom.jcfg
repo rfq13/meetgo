@@ -1,0 +1,456 @@
+# Janus VideoRoom plugin configuration
+# This plugin implements a videoconferencing SFU (Selective Forwarding Unit)
+
+# General settings
+general: {
+	# Number of rooms to create by default (can be overridden via API)
+	rooms = 10
+	
+	# Maximum number of rooms that can be created
+	max_rooms = 100
+	
+	# Number of participants per room by default
+	participants = 3
+	
+	# Maximum number of participants per room
+	max_participants = 50
+	
+	# Room ID to use for the first room (subsequent rooms will use incremental IDs)
+	room_id = 1234
+	
+	# Whether to destroy rooms when there are no participants
+	remove_room_when_empty = false
+	
+	# Time (in seconds) after which an empty room should be destroyed
+	remove_room_timeout = 60
+	
+	# Whether to record sessions by default
+	record = false
+	
+	# Whether to enable audio by default
+	audio = true
+	
+	# Whether to enable video by default
+	video = true
+	
+	# Whether to enable data channels by default
+	data = true
+	
+	# Whether to enable bitrate control
+	bitrate = true
+	
+	# Whether to enable VP9 simulcast
+	vp9_simulcast = false
+	
+	# Whether to enable H.264 simulcast
+	h264_simulcast = true
+	
+	# Whether to enable SVC (Scalable Video Coding)
+	svc = false
+	
+	# Whether to enable Opus in-band FEC
+	opus_fec = true
+	
+	# Whether to enable Opus DTX
+	opus_dtx = false
+	
+	# Whether to enable audio level detection
+	audio_level_ext = true
+	
+	# Whether to enable video orientation
+	video_orient_ext = true
+	
+	# Whether to enable playout delay
+	playoutdelay_ext = true
+	
+	# Whether to enable transport-wide CC
+	transport_wide_cc_ext = true
+	
+	# Whether to enable video orientation
+	vidorient_ext = true
+	
+	# Whether to enable audio level events
+	audio_level_event = true
+	
+	# Audio level average period (ms)
+	audio_level_average = 1000
+	
+	# Audio active packets threshold
+	audio_active_packets = 25
+	
+	# Whether to enable video activity detection
+	video_active_event = true
+	
+	# Video active packets threshold
+	video_active_packets = 25
+	
+	# Whether to enable talking events
+	talking_event = true
+	
+	# Talking threshold (dB)
+	talking_threshold = 30
+	
+	# Talking packets threshold
+	talking_packets = 100
+	
+	# Whether to enable bitrate events
+	bitrate_event = true
+	
+	# Bitrate event interval (ms)
+	bitrate_interval = 1000
+	
+	# Whether to enable media state events
+	media_state_event = true
+	
+	# Whether to enable slow link events
+	slow_link_event = true
+	
+	# Slow link threshold (percentage)
+	slow_link_threshold = 25
+	
+	# Slow link packets threshold
+	slow_link_packets = 6
+}
+
+# Recording settings
+recording: {
+	# Base path for recordings
+	rec_dir = "/opt/janus/share/janus/recordings/"
+	
+	# Recording format (wav,opus,webm,mp4)
+	rec_format = "webm"
+	
+	# Recording quality (low,medium,high)
+	rec_quality = "medium"
+	
+	# Whether to record audio
+	rec_audio = true
+	
+	# Whether to record video
+	rec_video = true
+	
+	# Whether to record data channels
+	rec_data = false
+	
+	# Whether to record timestamps
+	rec_timestamps = true
+	
+	# Recording filename pattern
+	rec_file_pattern = "videoroom-{room}-{user}-{date}"
+	
+	# Recording date format
+	rec_date_format = "%Y%m%d-%H%M%S"
+}
+
+# Media settings
+media: {
+	# Audio codec preference (opus,g722,pcmu,pcma)
+	audio_codec = "opus"
+	
+	# Video codec preference (vp8,vp9,h264)
+	video_codec = "vp8"
+	
+	# Audio bitrate (bps)
+	audio_bitrate = 64000
+	
+	# Video bitrate (bps)
+	video_bitrate = 128000
+	
+	# Maximum audio bitrate (bps)
+	max_audio_bitrate = 128000
+	
+	# Maximum video bitrate (bps)
+	max_video_bitrate = 2000000
+	
+	# Minimum audio bitrate (bps)
+	min_audio_bitrate = 32000
+	
+	# Minimum video bitrate (bps)
+	min_video_bitrate = 64000
+	
+	# Audio level average period (ms)
+	audio_level_average = 1000
+	
+	# Audio active packets threshold
+	audio_active_packets = 25
+	
+	# Video active packets threshold
+	video_active_packets = 25
+	
+	# Whether to enable audio level extension
+	audio_level_ext = true
+	
+	# Whether to enable video orientation extension
+	video_orient_ext = true
+	
+	# Whether to enable playout delay extension
+	playoutdelay_ext = true
+	
+	# Whether to enable transport-wide CC extension
+	transport_wide_cc_ext = true
+	
+	# Whether to enable VP9 simulcast
+	vp9_simulcast = false
+	
+	# Whether to enable H.264 simulcast
+	h264_simulcast = true
+	
+	# Whether to enable SVC
+	svc = false
+	
+	# Whether to enable Opus in-band FEC
+	opus_fec = true
+	
+	# Whether to enable Opus DTX
+	opus_dtx = false
+	
+	# Whether to enable G.711 PLC
+	g711_plc = true
+	
+	# H.264 profile
+	h264_profile = "42e01e"
+	
+	# H.264 level
+	h264_level = "42e01e"
+	
+	# VP8 MTU size
+	vp8_mtusize = 1200
+	
+	# Opus complexity
+	opus_complexity = 4
+	
+	# Whether to enable audio bitrate estimation
+	do_audio_bw_est = true
+	
+	# Whether to enable video bitrate estimation
+	do_video_bw_est = true
+	
+	# Audio bitrate estimation interval (ms)
+	audio_bw_est_interval = 1000
+	
+	# Video bitrate estimation interval (ms)
+	video_bw_est_interval = 1000
+	
+	# Audio bitrate estimation threshold
+	audio_bw_est_threshold = 1000
+	
+	# Video bitrate estimation threshold
+	video_bw_est_threshold = 1000
+}
+
+# Room settings
+rooms: {
+	# Default room settings (can be overridden per room)
+	default_room: {
+		# Room description
+		description = "Default VideoRoom"
+		
+		# Whether room is private
+		is_private = false
+		
+		# Room secret (for authentication)
+		secret = ""
+		
+		# Room pin (for authentication)
+		pin = ""
+		
+		# Whether to require PIN
+		require_pvt_id = false
+		
+		# Maximum number of publishers
+		publishers = 3
+		
+		# Maximum number of subscribers per publisher
+		subscribers = 50
+		
+		# Bitrate limit (bps)
+		bitrate = 128000
+		
+		# Whether to record by default
+		record = false
+		
+		# Whether to enable audio by default
+		audio = true
+		
+		# Whether to enable video by default
+		video = true
+		
+		# Whether to enable data channels by default
+		data = true
+		
+		# Whether to enable bitrate control
+		bitrate = true
+		
+		# Whether to enable VP9 simulcast
+		vp9_simulcast = false
+		
+		# Whether to enable H.264 simulcast
+		h264_simulcast = true
+		
+		# Whether to enable SVC
+		svc = false
+		
+		# Whether to enable Opus in-band FEC
+		opus_fec = true
+		
+		# Whether to enable Opus DTX
+		opus_dtx = false
+		
+		# Whether to enable audio level detection
+		audio_level_ext = true
+		
+		# Whether to enable video orientation
+		video_orient_ext = true
+		
+		# Whether to enable playout delay
+		playoutdelay_ext = true
+		
+		# Whether to enable transport-wide CC
+		transport_wide_cc_ext = true
+		
+		# Whether to enable audio level events
+		audio_level_event = true
+		
+		# Audio level average period (ms)
+		audio_level_average = 1000
+		
+		# Audio active packets threshold
+		audio_active_packets = 25
+		
+		# Whether to enable video activity detection
+		video_active_event = true
+		
+		# Video active packets threshold
+		video_active_packets = 25
+		
+		# Whether to enable talking events
+		talking_event = true
+		
+		# Talking threshold (dB)
+		talking_threshold = 30
+		
+		# Talking packets threshold
+		talking_packets = 100
+		
+		# Whether to enable bitrate events
+		bitrate_event = true
+		
+		# Bitrate event interval (ms)
+		bitrate_interval = 1000
+		
+		# Whether to enable media state events
+		media_state_event = true
+		
+		# Whether to enable slow link events
+		slow_link_event = true
+		
+		# Slow link threshold (percentage)
+		slow_link_threshold = 25
+		
+		# Slow link packets threshold
+		slow_link_packets = 6
+		
+		# Audio codec preference
+		audio_codec = "opus"
+		
+		# Video codec preference
+		video_codec = "vp8"
+		
+		# Audio bitrate (bps)
+		audio_bitrate = 64000
+		
+		# Video bitrate (bps)
+		video_bitrate = 128000
+		
+		# Maximum audio bitrate (bps)
+		max_audio_bitrate = 128000
+		
+		# Maximum video bitrate (bps)
+		max_video_bitrate = 2000000
+		
+		# Minimum audio bitrate (bps)
+		min_audio_bitrate = 32000
+		
+		# Minimum video bitrate (bps)
+		min_video_bitrate = 64000
+		
+		# Recording format
+		rec_format = "webm"
+		
+		# Recording quality
+		rec_quality = "medium"
+		
+		# Whether to record audio
+		rec_audio = true
+		
+		# Whether to record video
+		rec_video = true
+		
+		# Whether to record data channels
+		rec_data = false
+		
+		# Whether to record timestamps
+		rec_timestamps = true
+		
+		# Recording filename pattern
+		rec_file_pattern = "videoroom-{room}-{user}-{date}"
+		
+		# Recording date format
+		rec_date_format = "%Y%m%d-%H%M%S"
+	}
+}
+
+# Event handler settings
+events: {
+	# Whether to enable events
+	enabled = false
+	
+	# Event types to notify
+	# room_created, room_destroyed, participant_joined, participant_left
+	# publisher_registered, publisher_unregistered, subscriber_attached, subscriber_detached
+	# media_started, media_stopped, talking_started, talking_stopped
+	# bitrate_changed, media_state_changed, slow_link
+	event_types = "room_created,room_destroyed,participant_joined,participant_left,publisher_registered,publisher_unregistered,subscriber_attached,subscriber_detached,media_started,media_stopped,talking_started,talking_stopped,bitrate_changed,media_state_changed,slow_link"
+	
+	# Event handler groups
+	groups = "videoroom"
+}
+
+# Logging settings
+logging: {
+	# Log level (0=none, 1=error, 2=warning, 3=info, 4=debug, 5=verbose)
+	level = 3
+	
+	# Whether to log timestamps
+	timestamps = true
+	
+	# Whether to log colors
+	colors = true
+	
+	# Whether to log to file
+	file = true
+	
+	# Log file path
+	file_path = "/var/log/janus/videoroom.log"
+	
+	# Whether to log to console
+	console = true
+	
+	# Whether to log to syslog
+	syslog = false
+	
+	# Syslog facility
+	syslog_facility = "daemon"
+	
+	# Whether to log to remote server
+	remote = false
+	
+	# Remote server address
+	remote_address = "localhost"
+	
+	# Remote server port
+	remote_port = 514
+	
+	# Remote server protocol (udp,tcp)
+	remote_protocol = "udp"
+}
