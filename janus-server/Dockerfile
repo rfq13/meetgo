@@ -1,6 +1,6 @@
 # Multi-stage build untuk optimasi ukuran image dan penggunaan RAM
 # Stage 1: Build stage
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:20.04 AS builder
 
 # Set environment variables to avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive

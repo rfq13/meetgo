@@ -35,8 +35,8 @@ WORKDIR /app
 # Copy the binary from builder stage
 COPY --from=builder /app/api-server .
 
-# Copy configuration files
-COPY --from=builder /app/configs ./configs
+# Copy environment file
+COPY --from=builder /app/.env .
 
 # Change ownership to appuser
 RUN chown -R appuser:appgroup /app
