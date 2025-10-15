@@ -36,7 +36,7 @@ WORKDIR /app
 COPY --from=builder /app/api-server .
 
 # Copy environment file
-COPY --from=builder /app/.env .
+# COPY --from=builder /app/.env .
 
 # Change ownership to appuser
 RUN chown -R appuser:appgroup /app

@@ -1,130 +1,180 @@
-# Multi-stage build untuk optimasi ukuran image dan penggunaan RAM
+# Multi-stage build untuk Janus Gateway - OPTIMIZED VERSION
 # Stage 1: Build stage
-FROM ubuntu:20.04 AS builder
+FROM ubuntu:22.04 AS builder
 
-# Set environment variables to avoid interactive prompts
+# Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
+ENV JANUS_VERSION=1.2.0
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    curl \
     build-essential \
+    git \
+    curl \
+    wget \
+    cmake \
+    meson \
+    ninja-build \
     pkg-config \
+    gengetopt \
+    libtool \
+    automake \
+    autoconf \
+    # Janus dependencies
     libmicrohttpd-dev \
     libjansson-dev \
-    libnice-dev \
     libssl-dev \
-    libsrtp2-dev \
-    libsofia-sip-ua-dev \
+    libglib2.0-dev \
     libopus-dev \
-    libspeexdsp-dev \
     libogg-dev \
-    libvpx-dev \
     libcurl4-openssl-dev \
     liblua5.3-dev \
     libconfig-dev \
-    python3-dev \
-    libavformat-dev \
-    libavcodec-dev \
     libavutil-dev \
-    libswscale-dev \
-    libavfilter-dev \
-    librabbitmq-dev \
-    libnanomsg-dev \
-    libevent-dev \
-    libglib2.0-dev \
-    libgtk-3-dev \
-    libwebsockets-dev \
-    libsctp-dev \
-    libusrsctp-dev \
-    cmake \
-    git \
+    libavcodec-dev \
+    libavformat-dev \
+    libspeexdsp-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /opt
+# Build libnice (required for ICE)
+WORKDIR /tmp/libnice
+RUN git clone --depth 1 --branch 0.1.21 https://gitlab.freedesktop.org/libnice/libnice.git . && \
+    meson setup build --prefix=/usr --buildtype=release && \
+    ninja -C build && \
+    ninja -C build install && \
+    ldconfig
 
-# Clone dan build Janus WebRTC Server dengan optimasi RAM
-RUN git clone --depth 1 --branch v1.2.0 https://github.com/meetecho/janus-gateway.git && \
-    cd janus-gateway && \
-    git checkout v1.2.0 && \
+# Build libsrtp (required for SRTP)
+WORKDIR /tmp/libsrtp
+RUN wget https://github.com/cisco/libsrtp/archive/v2.5.0.tar.gz && \
+    tar xfv v2.5.0.tar.gz && \
+    cd libsrtp-2.5.0 && \
+    ./configure --prefix=/usr --enable-openssl && \
+    make shared_library -j$(nproc) && \
+    make install && \
+    ldconfig
+
+# Build usrsctp (for DataChannels)
+WORKDIR /tmp/usrsctp
+RUN git clone --depth 1 https://github.com/sctplab/usrsctp.git . && \
+    ./bootstrap && \
+    ./configure --prefix=/usr --disable-programs --disable-inet --disable-inet6 && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
+
+# Build libwebsockets (for WebSocket support)
+WORKDIR /tmp/libwebsockets
+RUN git clone --depth 1 --branch v4.3-stable https://libwebsockets.org/repo/libwebsockets.git . && \
+    mkdir build && cd build && \
+    cmake -DLWS_MAX_SMP=1 \
+          -DLWS_WITHOUT_EXTENSIONS=0 \
+          -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+          -DCMAKE_C_FLAGS="-fpic" \
+          -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
+
+# Build Sofia-SIP (for SIP plugin)
+WORKDIR /tmp/sofia-sip
+RUN git clone --depth 1 --branch v1.13.16 https://github.com/freeswitch/sofia-sip.git . && \
+    ./bootstrap.sh && \
+    ./configure --prefix=/usr && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
+
+# Clone and build Janus Gateway
+WORKDIR /tmp/janus
+RUN git clone --depth 1 --branch v${JANUS_VERSION} https://github.com/meetecho/janus-gateway.git . && \
     sh autogen.sh && \
-    ./configure --prefix=/opt/janus --enable-websockets --enable-data-channels --enable-plugin-videoroom --enable-plugin-audiobridge --enable-plugin-recordplay --enable-plugin-streaming && \
+    ./configure --prefix=/opt/janus \
+        --enable-websockets \
+        --enable-data-channels \
+        --enable-post-processing \
+        --enable-plugin-videoroom \
+        --enable-plugin-audiobridge \
+        --enable-plugin-recordplay \
+        --enable-plugin-streaming \
+        --enable-plugin-textroom \
+        --enable-rest \
+        --disable-rabbitmq \
+        --disable-mqtt \
+        --disable-unix-sockets && \
     make -j$(nproc) && \
     make install && \
     make configs
 
 # Stage 2: Runtime stage
-FROM ubuntu:22.04 AS runtime
+FROM ubuntu:22.04
 
-# Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
-ENV JANUS_CONF=/opt/janus/etc/janus
 
-# Install only runtime dependencies
+# Install ONLY runtime dependencies (no -dev packages)
 RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    # Runtime libraries
     libmicrohttpd12 \
     libjansson4 \
-    libnice10 \
     libssl3 \
-    libsrtp2-1 \
-    libsofia-sip-ua0 \
+    libglib2.0-0 \
     libopus0 \
-    libspeexdsp1 \
     libogg0 \
-    libvpx6 \
     libcurl4 \
     liblua5.3-0 \
     libconfig9 \
-    python3 \
-    libavformat58 \
-    libavcodec58 \
     libavutil56 \
-    libswscale5 \
-    libavfilter7 \
-    librabbitmq4 \
-    libnanomsg5 \
-    libevent-2.1-7 \
-    libglib2.0-0 \
-    libgtk-3-0 \
-    libwebsockets16 \
-    libsctp2 \
-    libusrsctp1 \
-    curl \
+    libavcodec58 \
+    libavformat58 \
+    libspeexdsp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Create janus user
-RUN groupadd -r janus && useradd -r -g janus janus
+# Copy built libraries from builder
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libnice.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libgio-*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/libsrtp2.so* /usr/lib/
+COPY --from=builder /usr/lib/libusrsctp.so* /usr/lib/
+COPY --from=builder /usr/lib/libwebsockets.so* /usr/lib/
+COPY --from=builder /usr/lib/libsofia-sip-ua.so* /usr/lib/
 
-# Copy hasil build dari builder stage
+# Copy Janus installation
 COPY --from=builder /opt/janus /opt/janus
 
-# Create necessary directories
-RUN mkdir -p /opt/janus/share/janus/recordings \
-    && mkdir -p /opt/janus/share/janus/demos \
-    && mkdir -p /var/log/janus
+# Update library cache
+RUN ldconfig
 
-# Copy configuration files
-COPY config/ /opt/janus/etc/janus/
+# Create janus user and necessary directories
+RUN groupadd -r janus && useradd -r -g janus janus && \
+    mkdir -p /opt/janus/var/log/janus \
+             /opt/janus/var/recordings \
+             /opt/janus/share/janus/streams \
+             /var/log/janus && \
+    chown -R janus:janus /opt/janus /var/log/janus
 
-# Change ownership
-RUN chown -R janus:janus /opt/janus && \
-    chown -R janus:janus /var/log/janus
+# Copy configuration files if exists
+COPY --chown=janus:janus config/* /opt/janus/etc/janus/ 2>/dev/null || true
 
 # Switch to janus user
 USER janus
 
 # Expose ports
-# 8088: HTTP/HTTPS interface
-# 8188: Admin/monitor interface
-# 10000-20000: RTP/RTCP range
-EXPOSE 8088 8188 10000-20000/udp
+# 8088: HTTP REST API
+# 8188: Admin/Monitor HTTP
+# 8989: WebSocket
+# 7088: Admin WebSocket
+# 10000-20000: RTP/RTCP
+EXPOSE 8088 8188 8989 7088
+EXPOSE 10000-20000/udp
+
+WORKDIR /opt/janus
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
     CMD curl -f http://localhost:8088/janus/info || exit 1
 
-# Start Janus dengan WebSocket support
-CMD ["/opt/janus/bin/janus", "--stun-server=stun:stun.l.google.com:19302", "--configs-folder=/opt/janus/etc/janus"]
+# Start Janus
+CMD ["/opt/janus/bin/janus", \
+     "--stun-server=stun:stun.l.google.com:19302", \
+     "--configs-folder=/opt/janus/etc/janus"]

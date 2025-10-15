@@ -31,9 +31,6 @@ WORKDIR /app
 # Copy the binary from builder stage
 COPY --from=builder /app/websocket-server .
 
-# Copy configuration files
-COPY --from=builder /app/configs ./configs
-
 # Create a non-root user and change ownership in single RUN command
 RUN addgroup -g 1001 -S wsgroup && \
     adduser -u 1001 -S wsuser -G wsgroup && \
