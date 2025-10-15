@@ -150,6 +150,7 @@ RUN groupadd -r janus && useradd -r -g janus janus && \
     mkdir -p /opt/janus/var/log/janus \
              /opt/janus/var/recordings \
              /opt/janus/share/janus/streams \
+             /opt/janus/etc/janus \
              /var/log/janus && \
     chown -R janus:janus /opt/janus /var/log/janus
 
