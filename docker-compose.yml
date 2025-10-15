@@ -108,7 +108,7 @@ services:
       
       # Janus Configuration
       JANUS_BASE_URL: http://janus:8088/janus
-      JANUS_ADMIN_URL: http://janus:7889/admin
+      JANUS_ADMIN_URL: http://janus:8088/admin
       JANUS_API_SECRET: ${JANUS_API_SECRET:-janusrocks}
       JANUS_ADMIN_SECRET: ${JANUS_ADMIN_SECRET:-janusrocksadmin}
       

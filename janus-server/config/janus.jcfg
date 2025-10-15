@@ -197,8 +197,8 @@ http: {
 	# HTTP server port
 	http_port = 8088
 	
-	# HTTPS server port
-	https_port = 7889
+	# HTTPS server port (disabled for local development)
+	# https_port = 7889
 	
 	# HTTP interface to bind to
 	http_interface = "0.0.0.0"
